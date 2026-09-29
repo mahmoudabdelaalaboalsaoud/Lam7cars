@@ -1,7 +1,0 @@
-name = "lam7cars"
-main = "_worker.js"
-compatibility_date = "2025-01-01"
-
-[assets]
-directory = "./public"
-binding = "ASSETS"
