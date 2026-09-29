@@ -1,0 +1,11 @@
+name = "lam7cars"
+main = "_worker.js"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[vars]
+FIREBASE_PROJECT_ID = "lam7cars"
+SUPABASE_URL = "https://ptimioffmszhmpxxuqha.supabase.co"
