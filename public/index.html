@@ -479,6 +479,24 @@ footer{border-top:1px solid var(--border-soft); padding:44px clamp(16px,4vw,40px
 .footer-social{display:flex; gap:10px; margin-top:14px}
 .footer-social a{width:36px;height:36px;border-radius:10px;background:var(--surface); border:1px solid var(--border); display:flex;align-items:center;justify-content:center}
 .footer-copy{text-align:center; color:var(--text-mute); font-size:12.5px; margin-top:34px}
+/* بطاقة تواصل معنا الاحترافية */
+.contact-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; min-width:230px; max-width:320px; flex:1; position:relative; overflow:hidden;
+}
+.contact-card::before{content:""; position:absolute; inset-inline-start:0; top:0; width:100%; height:3px; background:linear-gradient(90deg, var(--accent), transparent)}
+.contact-card-label{display:block; font-weight:800; font-size:13.5px; color:var(--text); margin-bottom:12px}
+.contact-row{
+  display:flex; align-items:center; gap:10px; padding:10px 0; color:var(--text-dim); font-size:13.5px;
+  border-top:1px solid var(--border-soft); transition:color .2s;
+}
+.contact-row:first-of-type{border-top:none}
+a.contact-row:hover{color:var(--text)}
+.contact-row-icon{
+  width:30px; height:30px; border-radius:9px; background:var(--surface-2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;
+}
+.contact-row-text{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 
 /* ==========================================================================
    Auth modal
@@ -593,17 +611,24 @@ tr:last-child td{border-bottom:none}
   .nav-links.open{transform:translateX(0)}
   .nav-toggle{display:block}
   #admin.active{flex-direction:column}
-  .admin-side{width:100%; height:auto; position:relative; flex-direction:row; align-items:center; padding:12px; overflow-x:auto}
+  /* الكل ظاهر على الموبايل من غير أي تمرير أفقي: تلف لسطر جديد بدل التمرير */
+  .admin-side{width:100%; height:auto; position:relative; flex-direction:row; flex-wrap:wrap; align-items:center; padding:10px 12px; overflow-x:visible}
   .admin-brand{display:none}
-  .admin-nav{flex-direction:row}
+  .admin-nav{flex-direction:row; flex-wrap:wrap; flex:1}
+  .admin-nav button{padding:8px 10px; font-size:13.5px}
   .admin-foot{
     display:flex; flex-direction:row; align-items:center; gap:8px; flex-shrink:0;
-    border-top:none; padding-top:0; padding-inline-start:12px; margin-inline-start:6px;
-    border-inline-start:1px solid var(--border-soft);
+    width:100%; justify-content:flex-end;
+    border-top:1px solid var(--border-soft); margin-top:6px; padding-top:8px;
+    border-inline-start:none; padding-inline-start:0; margin-inline-start:0;
   }
   .admin-foot .user-email{display:none}
   .admin-foot .btn-sm{white-space:nowrap}
   .form-grid{grid-template-columns:1fr}
+  /* نظرة عامة: مربعات صغيرة جنب بعض بدل مستطيلات طويلة مكدّسة */
+  .stat-grid{grid-template-columns:repeat(2,1fr); gap:10px}
+  .stat-card{padding:14px}
+  .stat-card b{font-size:24px; margin-top:6px}
 }
 </style>
 </head>
@@ -633,7 +658,7 @@ tr:last-child td{border-bottom:none}
       <h1><span class="grad-text" id="heroTitleText">ابحث عن سيارتك القادمة بثقة</span></h1>
       <p id="heroSubtitle">تصفّح مجموعتنا المختارة من السيارات الجديدة والمستعملة، بأسعار واضحة وتفاصيل كاملة لكل سيارة.</p>
       <div class="hero-search">
-        <input id="heroSearchInput" type="text" placeholder="ابحث بالماركة أو الموديل… مثال: هيونداي توسان">
+        <input id="heroSearchInput" type="search" name="car-search-query" placeholder="ابحث بالماركة أو الموديل… مثال: هيونداي توسان" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <button class="btn btn-primary" id="heroSearchBtn">بحث</button>
       </div>
       <div class="hero-stats">
@@ -675,24 +700,28 @@ tr:last-child td{border-bottom:none}
   </main>
 
   <section class="section" id="about">
-    <div style="max-width:680px" class="fade-up">
-      <h2 id="aboutTitleText" style="font-size:26px;font-weight:900;margin-bottom:14px">لماذا تختار المعرض؟</h2>
-      <p id="aboutTextContent" style="color:var(--text-dim);font-size:15px;line-height:1.9">نوفّر لك تشكيلة مختارة من السيارات الجديدة والمستعملة، مع تفاصيل واضحة وأسعار دقيقة لكل سيارة، وفريق متابعة سريع الاستجابة عبر واتساب.</p>
+    <div style="max-width:680px">
+      <h2 id="aboutTitleText" class="fade-up" style="font-size:26px;font-weight:900;margin-bottom:14px">لماذا تختار المعرض؟</h2>
+      <p id="aboutTextContent" class="fade-up" style="transition-delay:.1s; color:var(--text-dim);font-size:15px;line-height:1.9">نوفّر لك تشكيلة مختارة من السيارات الجديدة والمستعملة، مع تفاصيل واضحة وأسعار دقيقة لكل سيارة، وفريق متابعة سريع الاستجابة عبر واتساب.</p>
     </div>
   </section>
 
   <footer id="contact">
     <div class="footer-grid">
-      <div>
+      <div class="fade-up">
         <div class="brand"><span class="brand-mark" id="footBrandMark">🏁</span><span id="dealerNameFoot">المعرض</span></div>
         <p id="footerDesc">وجهتك الموثوقة لبيع وشراء السيارات الجديدة والمستعملة.</p>
         <div class="footer-social" id="socialLinks"></div>
       </div>
-      <div>
-        <p style="color:var(--text);font-weight:700;margin-bottom:10px">تواصل معنا</p>
-        <p id="footerPhone">—</p>
-        <p id="footerAddress">—</p>
-        <a href="#" class="btn btn-whatsapp btn-sm" id="footerWhatsapp" style="margin-top:14px">💬 تواصل عبر واتساب</a>
+      <div class="contact-card fade-up" style="transition-delay:.1s">
+        <span class="contact-card-label">تواصل معنا</span>
+        <a href="#" id="footerPhoneLink" class="contact-row">
+          <span class="contact-row-icon">📞</span><span id="footerPhone" class="contact-row-text">—</span>
+        </a>
+        <div class="contact-row">
+          <span class="contact-row-icon">📍</span><span id="footerAddress" class="contact-row-text">—</span>
+        </div>
+        <a href="#" class="btn btn-whatsapp" id="footerWhatsapp" style="width:100%; justify-content:center; margin-top:16px">💬 تواصل عبر واتساب</a>
       </div>
     </div>
     <p class="footer-copy" id="copyLine">© 2026 جميع الحقوق محفوظة</p>
@@ -828,7 +857,7 @@ tr:last-child td{border-bottom:none}
         </div>
       </div>
       <div class="field" style="max-width:320px; margin-bottom:14px">
-        <input id="clientSearchInput" type="text" placeholder="ابحث بالاسم أو رقم الهاتف…">
+        <input id="clientSearchInput" type="search" name="client-search-query" placeholder="ابحث بالاسم أو رقم الهاتف…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </div>
       <div class="table-wrap">
         <table>
@@ -840,7 +869,9 @@ tr:last-child td{border-bottom:none}
 
     <!-- Settings -->
     <section class="admin-panel" id="panel-settings">
-      <div class="admin-topbar"><h1>إعدادات المعرض</h1></div>
+      <div class="admin-topbar"><h1>إعدادات المعرض</h1>
+        <button class="btn btn-ghost btn-sm admin-done-btn" data-close-settings>✕ إغلاق</button>
+      </div>
 
       <div class="sheet" style="max-width:640px; margin:0 0 18px">
         <h3 style="font-size:16px">التصميم والهوية</h3>
@@ -934,6 +965,7 @@ tr:last-child td{border-bottom:none}
         </div>
         <div class="sheet-actions">
           <button class="btn btn-primary" id="saveSettingsBtn">حفظ كل الإعدادات</button>
+          <button class="btn btn-ghost" data-close-settings>✕ إغلاق بدون حفظ</button>
         </div>
       </div>
     </section>
@@ -1386,7 +1418,11 @@ function fmtBytes(n){
 const revealObserver = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); revealObserver.unobserve(e.target); } });
 }, { threshold: .15 });
-document.querySelectorAll(".fade-up").forEach(el=> revealObserver.observe(el));
+/* عناصر fade-up (العناوين والنصوص والتواصل) تدخل وتخرج مع السكرول في الاتجاهين، على عكس كروت السيارات (مرة واحدة فقط) */
+const fadeUpObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(e=> e.target.classList.toggle("in", e.isIntersecting));
+}, { threshold: .15 });
+document.querySelectorAll(".fade-up").forEach(el=> fadeUpObserver.observe(el));
 
 /* ==========================================================================
    State
@@ -1471,8 +1507,11 @@ function applySettingsToUI(){
   $("aboutTitleText").textContent = settings.aboutTitle || "لماذا تختار المعرض؟";
   $("aboutTextContent").textContent = settings.aboutText || "نوفّر لك تشكيلة مختارة من السيارات الجديدة والمستعملة، مع تفاصيل واضحة وأسعار دقيقة لكل سيارة، وفريق متابعة سريع الاستجابة عبر واتساب.";
   if(settings.footerDesc) $("footerDesc").textContent = settings.footerDesc;
-  $("footerPhone").textContent = settings.phone ? "📞 " + settings.phone : "";
-  $("footerAddress").textContent = settings.address ? "📍 " + settings.address : "";
+  $("footerPhone").textContent = settings.phone || "—";
+  $("footerPhoneLink").href = settings.phone ? "tel:" + digitsOnly(settings.phone) : "#";
+  $("footerPhoneLink").style.display = settings.phone ? "flex" : "none";
+  $("footerAddress").textContent = settings.address || "—";
+  $("footerAddress").parentElement.style.display = settings.address ? "flex" : "none";
   const wa = settings.whatsapp ? `https://wa.me/${digitsOnly(settings.whatsapp)}` : "#";
   $("footerWhatsapp").href = wa;
   $("footerWhatsapp").classList.toggle("btn-disabled", !settings.whatsapp);
@@ -2446,7 +2485,16 @@ $("saveSettingsBtn").addEventListener("click", async ()=>{
     pendingOgImageUrl = null;
     applySettingsToUI();
     toast("تم حفظ الإعدادات", "ok");
+    closeSettingsPanel();
   }catch(err){ toast("تعذّر حفظ الإعدادات", "err"); }
+});
+/* إغلاق صفحة الإعدادات والرجوع لنظرة عامة — من زرار ✕ فوق، أو تحت، أو تلقائيًا بعد الحفظ */
+function closeSettingsPanel(){
+  const overviewBtn = document.querySelector('.admin-nav button[data-panel="overview"]');
+  if(overviewBtn) overviewBtn.click();
+}
+document.querySelectorAll("[data-close-settings]").forEach(btn=>{
+  btn.addEventListener("click", closeSettingsPanel);
 });
 
 /* ==========================================================================
