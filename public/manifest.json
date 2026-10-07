@@ -1,0 +1,18 @@
+{
+  "name": "كسر 100 - سيارات للبيع",
+  "short_name": "كسر 100",
+  "description": "سيارات أقل من 100 ألف كم وفابريكا بالكامل",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0d10",
+  "theme_color": "#0b0d10",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
