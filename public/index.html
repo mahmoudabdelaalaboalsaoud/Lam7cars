@@ -602,6 +602,32 @@ tr:last-child td{border-bottom:none}
 .loading-screen{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:9999; flex-direction:column; gap:14px}
 .loading-screen .spinner{width:28px;height:28px; border-width:3px}
 
+/* ---------- لودر "سيارة بتتجمع" ---------- */
+.car-loader{width:200px; height:auto; overflow:visible}
+.car-loader .cl-scene{animation:clSceneFade 2.8s ease-in-out infinite}
+.car-loader .cl-glow{fill:var(--accent); opacity:0; filter:blur(7px); transform-origin:120px 100px; animation:clGlow 2.8s ease infinite}
+.car-loader .cl-speed line{stroke:var(--accent); stroke-width:3; stroke-linecap:round; opacity:0; animation:clSpeed 2.8s ease infinite}
+.car-loader .cl-speed line:nth-child(2){animation-delay:.1s}
+.car-loader .cl-speed line:nth-child(3){animation-delay:.18s}
+.car-loader .cl-wheel circle{fill:var(--bg-2); stroke:var(--text-mute); stroke-width:2.2}
+.car-loader .cl-wheel .cl-hub{fill:var(--text-mute); stroke:none}
+.car-loader .cl-wheel-back{animation:clWheelBack 2.8s cubic-bezier(.34,1.56,.64,1) infinite}
+.car-loader .cl-wheel-front{animation:clWheelFront 2.8s cubic-bezier(.34,1.56,.64,1) infinite}
+.car-loader .cl-body{fill:var(--accent); animation:clBody 2.8s cubic-bezier(.34,1.56,.64,1) infinite}
+.car-loader .cl-cabin{animation:clCabin 2.8s cubic-bezier(.34,1.56,.64,1) infinite}
+.car-loader .cl-cabin-fill{fill:var(--accent)}
+.car-loader .cl-glass{fill:var(--bg-2); opacity:.9}
+.car-loader .cl-headlight{fill:#ffe9a8; opacity:0; animation:clHeadlight 2.8s ease infinite}
+
+@keyframes clSceneFade{0%{opacity:0} 10%{opacity:1} 86%{opacity:1} 100%{opacity:0}}
+@keyframes clGlow{0%,35%{opacity:0} 55%{opacity:.5} 75%{opacity:.35} 100%{opacity:.35}}
+@keyframes clSpeed{0%{opacity:0; transform:translateX(-14px)} 12%{opacity:1} 30%{opacity:0; transform:translateX(50px)} 100%{opacity:0}}
+@keyframes clWheelBack{0%{transform:translateX(-70px)} 26%{transform:translateX(0)} 100%{transform:translateX(0)}}
+@keyframes clWheelFront{0%{transform:translateX(70px)} 26%{transform:translateX(0)} 100%{transform:translateX(0)}}
+@keyframes clBody{0%,22%{opacity:0; transform:translateY(-36px)} 44%{opacity:1; transform:translateY(0)} 100%{opacity:1; transform:translateY(0)}}
+@keyframes clCabin{0%,40%{opacity:0; transform:translateY(-22px)} 58%{opacity:1; transform:translateY(0)} 100%{opacity:1; transform:translateY(0)}}
+@keyframes clHeadlight{0%,62%{opacity:0} 72%{opacity:1} 100%{opacity:1}}
+
 @media(max-width:920px){
   .nav-links{position:fixed; inset-inline-end:0; top:0; height:100vh; width:76%; max-width:300px; background:var(--elev);
     flex-direction:column; align-items:stretch; padding:80px 24px 24px; gap:18px; border-inline-start:1px solid var(--border);
@@ -638,7 +664,28 @@ tr:last-child td{border-bottom:none}
 </head>
 <body>
 
-<div id="loading" class="loading-screen"><div class="spinner"></div><span style="color:var(--text-mute);font-size:14px">جارِ التحميل…</span><span id="loadingSlowNote" style="display:none;color:var(--text-mute);font-size:12.5px;margin-top:6px">الاتصال بطيء — جارِ المحاولة، يمكنك الانتظار قليلاً</span></div>
+<div id="loading" class="loading-screen">
+  <svg class="car-loader" viewBox="0 0 240 132" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g class="cl-scene">
+      <ellipse class="cl-glow" cx="120" cy="100" rx="70" ry="10"/>
+      <g class="cl-speed">
+        <line x1="2" y1="58" x2="30" y2="58"/>
+        <line x1="-4" y1="72" x2="20" y2="72"/>
+        <line x1="4" y1="86" x2="26" y2="86"/>
+      </g>
+      <g class="cl-wheel cl-wheel-back"><circle cx="72" cy="94" r="14"/><circle class="cl-hub" cx="72" cy="94" r="4.5"/></g>
+      <g class="cl-wheel cl-wheel-front"><circle cx="170" cy="94" r="14"/><circle class="cl-hub" cx="170" cy="94" r="4.5"/></g>
+      <path class="cl-body" d="M30,92 L30,76 Q30,68 40,66 L72,60 Q80,47 94,44 L148,44 Q162,47 168,60 L196,64 Q210,66 210,80 L210,92 Z"/>
+      <g class="cl-cabin">
+        <path class="cl-cabin-fill" d="M94,60 L102,48 Q106,44 112,44 L138,44 Q144,44 148,48 L156,60 Z"/>
+        <path class="cl-glass" d="M102,58 L108,49 L136,49 L142,58 Z"/>
+      </g>
+      <circle class="cl-headlight" cx="204" cy="72" r="3"/>
+    </g>
+  </svg>
+  <span style="color:var(--text-mute);font-size:14px">جارِ التحميل…</span>
+  <span id="loadingSlowNote" style="display:none;color:var(--text-mute);font-size:12.5px;margin-top:6px">الاتصال بطيء — جارِ المحاولة، يمكنك الانتظار قليلاً</span>
+</div>
 
 <!-- ============================== PUBLIC SITE ============================== -->
 <div id="public">
