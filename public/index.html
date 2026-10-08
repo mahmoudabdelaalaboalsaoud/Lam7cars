@@ -655,6 +655,10 @@ tr:last-child td{border-bottom:none}
   .admin-foot .user-email{display:none}
   .admin-foot .btn-sm{white-space:nowrap; flex:1; justify-content:center}
   .form-grid{grid-template-columns:1fr}
+  /* الفوتر: عمود واحد متوسّط بدل التفاف غير متماثل */
+  .footer-grid{flex-direction:column; align-items:center; text-align:center}
+  .footer-grid .contact-card{width:100%; text-align:start}
+  .footer-social{justify-content:center}
   /* نظرة عامة: مربعات صغيرة جنب بعض بدل مستطيلات طويلة مكدّسة */
   .stat-grid{grid-template-columns:repeat(2,1fr); gap:10px}
   .stat-card{padding:14px}
@@ -1572,7 +1576,7 @@ function applySettingsToUI(){
   const social = $("socialLinks"); social.innerHTML = "";
   if(settings.facebook) social.innerHTML += `<a href="${esc(safeUrl(settings.facebook))}" target="_blank" rel="noopener noreferrer">📘</a>`;
   if(settings.instagram) social.innerHTML += `<a href="${esc(safeUrl(settings.instagram))}" target="_blank" rel="noopener noreferrer">📸</a>`;
-  if(settings.whatsapp) social.innerHTML += `<a href="${esc(wa)}" target="_blank" rel="noopener noreferrer">💬</a>`;
+  // ملحوظة: ما بنكررش أيقونة واتساب هنا — زرار واتساب الكبير موجود بوضوح في بطاقة "تواصل معنا" تحت
 
   // colors — cascade through every var(--accent) / var(--accent-2) use, and the canvas
   const primary = settings.primaryColor || "#ff6a2b";
