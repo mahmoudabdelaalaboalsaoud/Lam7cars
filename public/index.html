@@ -611,19 +611,23 @@ tr:last-child td{border-bottom:none}
   .nav-links.open{transform:translateX(0)}
   .nav-toggle{display:block}
   #admin.active{flex-direction:column}
-  /* الكل ظاهر على الموبايل من غير أي تمرير أفقي: تلف لسطر جديد بدل التمرير */
-  .admin-side{width:100%; height:auto; position:relative; flex-direction:row; flex-wrap:wrap; align-items:center; padding:10px 12px; overflow-x:visible}
+  /* شريط تابات منظم على الموبايل: 4 أزرار بعرض متساوٍ تملأ صف واحد بالظبط، وصف تاني منفصل تحته */
+  .admin-side{width:100%; height:auto; position:relative; flex-direction:column; align-items:stretch; padding:8px 10px; overflow-x:visible; gap:0}
   .admin-brand{display:none}
-  .admin-nav{flex-direction:row; flex-wrap:wrap; flex:1}
-  .admin-nav button{padding:8px 10px; font-size:13.5px}
+  .admin-nav{flex-direction:row; flex-wrap:nowrap; gap:2px}
+  .admin-nav button{
+    flex:1; min-width:0; flex-direction:column; justify-content:center; gap:3px;
+    padding:8px 2px; font-size:11px; text-align:center; border-radius:8px;
+  }
+  .admin-nav button .ic{width:auto; font-size:17px}
   .admin-foot{
-    display:flex; flex-direction:row; align-items:center; gap:8px; flex-shrink:0;
-    width:100%; justify-content:flex-end;
-    border-top:1px solid var(--border-soft); margin-top:6px; padding-top:8px;
+    display:flex; flex-direction:row; align-items:center; gap:8px;
+    width:100%; justify-content:center;
+    border-top:1px solid var(--border-soft); margin-top:8px; padding-top:8px;
     border-inline-start:none; padding-inline-start:0; margin-inline-start:0;
   }
   .admin-foot .user-email{display:none}
-  .admin-foot .btn-sm{white-space:nowrap}
+  .admin-foot .btn-sm{white-space:nowrap; flex:1; justify-content:center}
   .form-grid{grid-template-columns:1fr}
   /* نظرة عامة: مربعات صغيرة جنب بعض بدل مستطيلات طويلة مكدّسة */
   .stat-grid{grid-template-columns:repeat(2,1fr); gap:10px}
