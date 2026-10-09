@@ -468,6 +468,19 @@ body::before{
 .spec-item b{font-size:14.5px; font-family:var(--font-num)}
 .modal-desc{color:var(--text-dim); font-size:14.5px; line-height:1.8; margin-bottom:24px; white-space:pre-line}
 .modal-actions{display:flex; gap:10px; flex-wrap:wrap}
+.modal-icon-actions{display:flex; gap:10px; margin-top:10px}
+.icon-action{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  padding:11px 6px; color:var(--text-dim); font-size:11px; font-weight:700;
+  transition:transform .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.icon-action-ic{font-size:19px; line-height:1}
+.icon-action:hover, .icon-action:active{
+  transform:translateY(-3px); border-color:var(--accent); color:var(--text);
+  box-shadow:0 10px 22px -10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.icon-action.btn-disabled:hover{transform:none; box-shadow:none}
 .modal-actions .btn{flex:1; justify-content:center; padding:13px}
 
 /* ==========================================================================
@@ -476,8 +489,30 @@ body::before{
 footer{border-top:1px solid var(--border-soft); padding:44px clamp(16px,4vw,40px) 32px; margin-top:40px}
 .footer-grid{display:flex; justify-content:space-between; gap:30px; flex-wrap:wrap; max-width:1240px; margin:0 auto}
 .footer-grid p{color:var(--text-mute); font-size:13.5px; max-width:320px; margin-top:10px}
-.footer-social{display:flex; gap:10px; margin-top:14px}
-.footer-social a{width:36px;height:36px;border-radius:10px;background:var(--surface); border:1px solid var(--border); display:flex;align-items:center;justify-content:center}
+/* تابعنا على منصات التواصل الاجتماعي */
+.social-follow{
+  max-width:1240px; margin:36px auto 0; padding-top:28px; border-top:1px solid var(--border-soft);
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+}
+.social-follow-label{font-size:13px; font-weight:700; color:var(--text-mute); letter-spacing:.3px}
+.social-icons{display:flex; flex-wrap:wrap; justify-content:center; gap:12px}
+.social-icons a{
+  --sc:var(--accent);
+  position:relative; width:46px; height:46px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:19px;
+  background:color-mix(in srgb, var(--sc) 16%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--sc) 38%, var(--border));
+  transition:transform .3s var(--ease), box-shadow .3s var(--ease), background .3s var(--ease);
+}
+.social-icons a:hover, .social-icons a:active{
+  transform:translateY(-3px) scale(1.07);
+  background:var(--sc); box-shadow:0 10px 24px -8px var(--sc);
+}
+.social-icons a[data-p="wa-channel"], .social-icons a[data-p="wa-group"]{--sc:#25D366}
+.social-icons a[data-p="fb-page"], .social-icons a[data-p="fb-group"]{--sc:#1877F2}
+.social-icons a[data-p="instagram"]{--sc:#E4405F}
+.social-icons a[data-p="tiktok"]{--sc:#25F4EE}
+.social-icons a[data-p="youtube"]{--sc:#FF0000}
 .footer-copy{text-align:center; color:var(--text-mute); font-size:12.5px; margin-top:34px}
 /* بطاقة تواصل معنا الاحترافية */
 .contact-card{
@@ -761,12 +796,30 @@ tr:last-child td{border-bottom:none}
     </div>
   </section>
 
+  <script>
+  /* تطبيق فوري (قبل ما فايربيز حتى يبدأ) لآخر نص محفوظ عندك محلياً، عشان النص الافتراضي
+     القديم ميظهرش حتى لجزء من الثانية قبل ما ييجي النص الحقيقي من الإعدادات */
+  (function(){
+    try{
+      var c = JSON.parse(localStorage.getItem("kasr100_settings_cache") || "null");
+      if(!c) return;
+      var set = function(id, val){ if(!val) return; var el = document.getElementById(id); if(el) el.textContent = val; };
+      set("dealerNameNav", c.dealerName); set("dealerNameFoot", c.dealerName);
+      if(c.dealerName) document.title = c.dealerName + " — سيارات للبيع";
+      set("heroEyebrowText", c.heroEyebrow);
+      set("heroTitleText", c.heroTitle);
+      set("heroSubtitle", c.heroSubtitle);
+      set("aboutTitleText", c.aboutTitle);
+      set("aboutTextContent", c.aboutText);
+    }catch(e){}
+  })();
+  </script>
+
   <footer id="contact">
     <div class="footer-grid">
       <div class="fade-up">
         <div class="brand"><span class="brand-mark" id="footBrandMark">🏁</span><span id="dealerNameFoot">المعرض</span></div>
         <p id="footerDesc">وجهتك الموثوقة لبيع وشراء السيارات الجديدة والمستعملة.</p>
-        <div class="footer-social" id="socialLinks"></div>
       </div>
       <div class="contact-card fade-up" style="transition-delay:.1s">
         <span class="contact-card-label">تواصل معنا</span>
@@ -778,6 +831,10 @@ tr:last-child td{border-bottom:none}
         </div>
         <a href="#" class="btn btn-whatsapp" id="footerWhatsapp" style="width:100%; justify-content:center; margin-top:16px">💬 تواصل عبر واتساب</a>
       </div>
+    </div>
+    <div class="social-follow fade-up" id="socialFollowBlock" style="transition-delay:.15s">
+      <span class="social-follow-label">تابعنا على منصات التواصل الاجتماعي</span>
+      <div class="social-icons" id="socialLinks"></div>
     </div>
     <p class="footer-copy" id="copyLine">© 2026 جميع الحقوق محفوظة</p>
   </footer>
@@ -803,7 +860,11 @@ tr:last-child td{border-bottom:none}
       <p class="modal-desc" id="modalDesc"></p>
       <div class="modal-actions">
         <a href="#" target="_blank" class="btn btn-whatsapp" id="modalWhatsapp">💬 تواصل عبر واتساب</a>
-        <button class="btn btn-ghost" id="modalShare">🔗 مشاركة</button>
+      </div>
+      <div class="modal-icon-actions">
+        <a href="#" target="_blank" class="icon-action" id="modalBooking"><span class="icon-action-ic">📅</span><span class="icon-action-label">حجز معاينة</span></a>
+        <button class="icon-action" id="modalShare"><span class="icon-action-ic">🔗</span><span class="icon-action-label">مشاركة</span></button>
+        <a href="#" target="_blank" class="icon-action" id="modalWaChannel"><span class="icon-action-ic">📢</span><span class="icon-action-label">قناة واتساب</span></a>
       </div>
     </div>
   </div>
@@ -1015,8 +1076,13 @@ tr:last-child td{border-bottom:none}
           <div class="field"><label>رقم واتساب (بالصيغة الدولية بدون +)</label><input id="setWhatsapp" type="text" placeholder="201234567890"></div>
           <div class="field"><label>رقم الهاتف للعرض</label><input id="setPhone" type="text"></div>
           <div class="field full"><label>العنوان</label><input id="setAddress" type="text"></div>
-          <div class="field"><label>رابط فيسبوك</label><input id="setFacebook" type="text" placeholder="https://facebook.com/..."></div>
-          <div class="field"><label>رابط إنستجرام</label><input id="setInstagram" type="text" placeholder="https://instagram.com/..."></div>
+          <div class="field"><label>صفحة فيسبوك</label><input id="setFacebook" type="text" placeholder="https://facebook.com/..."></div>
+          <div class="field"><label>جروب فيسبوك</label><input id="setFbGroup" type="text" placeholder="https://facebook.com/groups/..."></div>
+          <div class="field"><label>إنستجرام</label><input id="setInstagram" type="text" placeholder="https://instagram.com/..."></div>
+          <div class="field"><label>تيك توك</label><input id="setTiktok" type="text" placeholder="https://tiktok.com/@..."></div>
+          <div class="field"><label>يوتيوب</label><input id="setYoutube" type="text" placeholder="https://youtube.com/@..."></div>
+          <div class="field"><label>قناة واتساب (Channel)</label><input id="setWaChannel" type="text" placeholder="https://whatsapp.com/channel/..."></div>
+          <div class="field"><label>مجموعة واتساب (Group)</label><input id="setWaGroup" type="text" placeholder="https://chat.whatsapp.com/..."></div>
         </div>
         <div class="sheet-actions">
           <button class="btn btn-primary" id="saveSettingsBtn">حفظ كل الإعدادات</button>
@@ -1531,6 +1597,7 @@ async function loadSettings(){
   try{
     const snap = await getDoc(doc(db,"settings","site"));
     settings = snap.exists() ? snap.data() : {};
+    try{ localStorage.setItem("kasr100_settings_cache", JSON.stringify(settings)); }catch(e){}
   }catch(e){ settings = {}; }
   brandsData = (settings.brandsData && Object.keys(settings.brandsData).length) ? settings.brandsData : JSON.parse(JSON.stringify(DEFAULT_BRANDS));
   colorsData = (settings.colorsData && settings.colorsData.length) ? settings.colorsData : [...DEFAULT_COLORS];
@@ -1574,9 +1641,17 @@ function applySettingsToUI(){
   $("copyLine").textContent = `© ${new Date().getFullYear()} ${name} — جميع الحقوق محفوظة`;
 
   const social = $("socialLinks"); social.innerHTML = "";
-  if(settings.facebook) social.innerHTML += `<a href="${esc(safeUrl(settings.facebook))}" target="_blank" rel="noopener noreferrer">📘</a>`;
-  if(settings.instagram) social.innerHTML += `<a href="${esc(safeUrl(settings.instagram))}" target="_blank" rel="noopener noreferrer">📸</a>`;
-  // ملحوظة: ما بنكررش أيقونة واتساب هنا — زرار واتساب الكبير موجود بوضوح في بطاقة "تواصل معنا" تحت
+  const socialPlatforms = [
+    ["waChannel","wa-channel","📢","قناة واتساب"], ["waGroup","wa-group","👥","مجموعة واتساب"],
+    ["facebook","fb-page","📘","صفحة فيسبوك"], ["fbGroup","fb-group","👥","جروب فيسبوك"],
+    ["instagram","instagram","📸","إنستجرام"], ["tiktok","tiktok","🎵","تيك توك"],
+    ["youtube","youtube","▶️","يوتيوب"],
+  ];
+  socialPlatforms.forEach(([key,dataP,icon,label])=>{
+    if(!settings[key]) return;
+    social.innerHTML += `<a href="${esc(safeUrl(settings[key]))}" target="_blank" rel="noopener noreferrer" data-p="${dataP}" title="${esc(label)}" aria-label="${esc(label)}">${icon}</a>`;
+  });
+  $("socialFollowBlock").style.display = socialPlatforms.some(([key])=> settings[key]) ? "flex" : "none";
 
   // colors — cascade through every var(--accent) / var(--accent-2) use, and the canvas
   const primary = settings.primaryColor || "#ff6a2b";
@@ -1609,7 +1684,12 @@ function applySettingsToUI(){
   $("setPhone").value = settings.phone || "";
   $("setAddress").value = settings.address || "";
   $("setFacebook").value = settings.facebook || "";
+  $("setFbGroup").value = settings.fbGroup || "";
   $("setInstagram").value = settings.instagram || "";
+  $("setTiktok").value = settings.tiktok || "";
+  $("setYoutube").value = settings.youtube || "";
+  $("setWaChannel").value = settings.waChannel || "";
+  $("setWaGroup").value = settings.waGroup || "";
 
   // ---- SEO ----
   const seoTitle = settings.seoTitle || `${name} — سيارات جديدة ومستعملة للبيع`;
@@ -1826,6 +1906,21 @@ function openCarModal(id){
     waBtn.classList.add("btn-disabled");
     waBtn.dataset.noNumber = "1";
   }
+  const bookBtn = $("modalBooking");
+  const bookMsg = encodeURIComponent(`مرحبًا، حابب أحجز معاينة لسيارة ${c.brand||''} ${c.model||''} ${c.year||''}`);
+  if(waNum){
+    bookBtn.href = `https://wa.me/${digitsOnly(waNum)}?text=${bookMsg}`;
+    bookBtn.classList.remove("btn-disabled"); bookBtn.dataset.noNumber = "";
+  } else {
+    bookBtn.href = "#"; bookBtn.classList.add("btn-disabled"); bookBtn.dataset.noNumber = "1";
+  }
+  const channelBtn = $("modalWaChannel");
+  if(settings.waChannel){
+    channelBtn.href = safeUrl(settings.waChannel);
+    channelBtn.style.display = "flex";
+  } else {
+    channelBtn.style.display = "none";
+  }
   renderGallery();
   const open = ()=>{ $("carModalBackdrop").classList.add("open"); document.body.style.overflow="hidden"; };
   withVT(open);
@@ -1965,6 +2060,12 @@ $("modalWhatsapp").addEventListener("click", (e)=>{
 });
 $("footerWhatsapp").addEventListener("click", (e)=>{
   if($("footerWhatsapp").dataset.noNumber){
+    e.preventDefault();
+    toast("لم يقم المعرض بإضافة رقم واتساب بعد — أضفه من لوحة التحكم ⟵ الإعدادات", "err");
+  }
+});
+$("modalBooking").addEventListener("click", (e)=>{
+  if($("modalBooking").dataset.noNumber){
     e.preventDefault();
     toast("لم يقم المعرض بإضافة رقم واتساب بعد — أضفه من لوحة التحكم ⟵ الإعدادات", "err");
   }
@@ -2524,7 +2625,12 @@ $("saveSettingsBtn").addEventListener("click", async ()=>{
     phone: $("setPhone").value.trim(),
     address: $("setAddress").value.trim(),
     facebook: $("setFacebook").value.trim(),
+    fbGroup: $("setFbGroup").value.trim(),
     instagram: $("setInstagram").value.trim(),
+    tiktok: $("setTiktok").value.trim(),
+    youtube: $("setYoutube").value.trim(),
+    waChannel: $("setWaChannel").value.trim(),
+    waGroup: $("setWaGroup").value.trim(),
     seoTitle: $("setSeoTitle").value.trim(),
     seoDesc: $("setSeoDesc").value.trim(),
     seoKeywords: $("setSeoKeywords").value.trim(),
