@@ -2,7 +2,7 @@
    الموقع كتطبيق. بيخزّن بس الملفات الثابتة (الأيقونات، manifest) مؤقتًا
    لسرعة التحميل، وبيجيب الصفحة نفسها من الإنترنت أولاً دايمًا عشان أي
    تحديث جديد يوصل فورًا، ومايتخزنش بيانات فايربيز/سوبابيز خالص. */
-const CACHE_NAME = "kasr100-shell-v1";
+const CACHE_NAME = "kasr100-shell-v2";
 const SHELL = ["/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
