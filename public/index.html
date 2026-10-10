@@ -399,6 +399,12 @@ body::before{
 .modal-gallery img{width:100%;height:100%;object-fit:cover; transition:opacity .4s var(--ease), transform .5s var(--ease)}
 .modal-gallery img.is-switching{opacity:0; transform:scale(1.035)}
 .modal-gallery img{cursor:zoom-in}
+.modal-video{aspect-ratio:16/9; background:#000}
+.modal-video iframe, .modal-video video{width:100%; height:100%; display:block; border:none}
+.video-fallback-link{
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+  color:var(--text); font-weight:700; background:var(--surface-2);
+}
 .gallery-dots{position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px}
 .gallery-dots span{width:6px;height:6px;border-radius:50%; background:#fff5; transition:background .2s}
 .gallery-dots span.active{background:var(--accent)}
@@ -870,6 +876,7 @@ tr:last-child td{border-bottom:none}
       <button class="gallery-autoplay" id="galleryAutoplay" title="تشغيل تلقائي" aria-label="تشغيل تلقائي">▶</button>
       <div class="gallery-dots" id="galleryDots"></div>
     </div>
+    <div class="modal-video" id="modalVideo" style="display:none"></div>
     <div class="modal-body">
       <h2 id="modalTitle"></h2>
       <div class="modal-meta" id="modalMeta"></div>
@@ -1119,6 +1126,7 @@ tr:last-child td{border-bottom:none}
       <div class="field"><label>الماركة</label><select id="carBrand"></select></div>
       <div class="field"><label>الموديل</label><select id="carModel"></select></div>
       <div class="field"><label>الفئة (اختياري)</label><input id="carTrim" type="text" placeholder="مثال: Comfort / Allure Plus"></div>
+      <div class="field full"><label>رابط فيديو (اختياري)</label><input id="carVideo" type="text" placeholder="رابط يوتيوب للسيارة، مثال: https://youtube.com/watch?v=..."></div>
       <div class="field"><label>سنة الصنع</label><input id="carYear" type="number" placeholder="2023"></div>
       <div class="field"><label>السعر (بالجنيه)</label><input id="carPrice" type="number" placeholder="750000"></div>
       <div class="field"><label>العداد (كم)</label><input id="carMileage" type="number" placeholder="15000"></div>
@@ -1910,6 +1918,7 @@ function openCarModal(id){
   if(!c) return;
   currentModalCar = c; currentGalleryIdx = 0;
   stopAutoplay();
+  renderCarVideo(c);
   $("modalTitle").textContent = `${c.brand||''} ${c.model||''}`;
   $("modalMeta").textContent = `${c.year||''} · ${c.color||''} · ${c.condition||''}${c.trim ? ' · '+c.trim : ''}`;
   $("modalPrice").textContent = fmtPrice(c.price);
@@ -1961,6 +1970,26 @@ function flashPulse(container){
   container.classList.remove("flash-pulse");
   void container.offsetWidth; // إعادة تشغيل الأنيميشن من الصفر
   container.classList.add("flash-pulse");
+}
+/* ---------- فيديو السيارة (يوتيوب أو رابط فيديو مباشر أو رابط خارجي) ---------- */
+function extractYouTubeId(url){
+  if(!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function renderCarVideo(c){
+  const wrap = $("modalVideo");
+  if(!c.video){ wrap.style.display = "none"; wrap.innerHTML = ""; return; }
+  const ytId = extractYouTubeId(c.video);
+  if(ytId){
+    wrap.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${esc(ytId)}" title="فيديو السيارة" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy" frameborder="0"></iframe>`;
+  } else if(/\.(mp4|webm|ogg)(\?.*)?$/i.test(c.video)){
+    wrap.innerHTML = `<video controls preload="metadata" src="${esc(safeUrl(c.video))}"></video>`;
+  } else {
+    const safe = safeUrl(c.video);
+    wrap.innerHTML = safe ? `<a href="${esc(safe)}" target="_blank" rel="noopener noreferrer" class="video-fallback-link">▶ مشاهدة فيديو السيارة</a>` : "";
+  }
+  wrap.style.display = wrap.innerHTML ? "block" : "none";
 }
 function renderGallery(){
   const imgs = (currentModalCar.images && currentModalCar.images.length) ? currentModalCar.images : [];
@@ -2098,6 +2127,7 @@ $("modalBooking").addEventListener("click", (e)=>{
 $("closeCarModal").addEventListener("click", ()=> withVT(()=>{
   stopAutoplay();
   if(lightboxOpen) closeLightbox();
+  $("modalVideo").innerHTML = ""; // نوقف تشغيل الفيديو (يوتيوب) لو كان شغّال
   $("carModalBackdrop").classList.remove("open"); document.body.style.overflow="";
 }));
 $("carModalBackdrop").addEventListener("click", e=>{ if(e.target===$("carModalBackdrop")) $("closeCarModal").click(); });
@@ -2290,6 +2320,7 @@ function openCarForm(id){
     const c = allCars.find(x=>x.id===id);
     $("carBrand").value = c.brand||""; populateModelSelect(c.brand||"", c.model||"");
     $("carTrim").value = c.trim||"";
+    $("carVideo").value = c.video||"";
     $("carYear").value = c.year||""; $("carPrice").value = c.price||"";
     $("carMileage").value = c.mileage||""; $("carColor").value = c.color||"";
     $("carTransmission").value = c.transmission||"أوتوماتيك"; $("carFuel").value = c.fuel||"بنزين";
@@ -2299,7 +2330,7 @@ function openCarForm(id){
     $("featuredSwitch").classList.toggle("on", !!c.featured);
     $("carTransitionEffect").value = c.transitionEffect || "fade";
   } else {
-    $("carBrand").value = ""; populateModelSelect(""); $("carTrim").value = "";
+    $("carBrand").value = ""; populateModelSelect(""); $("carTrim").value = ""; $("carVideo").value = "";
     ["carYear","carPrice","carMileage","carColor","carDesc"].forEach(id2=> $(id2).value = "");
     $("carTransmission").value="أوتوماتيك"; $("carFuel").value="بنزين";
     $("carCondition").value="مستعملة"; $("carStatus").value="متاح";
@@ -2363,6 +2394,7 @@ $("saveCarBtn").addEventListener("click", async ()=>{
     transmission: $("carTransmission").value, fuel: $("carFuel").value,
     condition: $("carCondition").value, status: $("carStatus").value,
     trim: $("carTrim").value.trim(),
+    video: $("carVideo").value.trim(),
     description: $("carDesc").value.trim(), images: uploadedImageUrls,
     featured: $("featuredSwitch").classList.contains("on"),
     transitionEffect: $("carTransitionEffect").value || "fade",
