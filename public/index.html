@@ -611,7 +611,15 @@ table{width:100%; min-width:560px; border-collapse:collapse; font-size:14px}
 th{text-align:start; color:var(--text-mute); font-weight:600; font-size:12.5px; padding:12px 14px; border-bottom:1px solid var(--border-soft)}
 td{padding:12px 14px; border-bottom:1px solid var(--border-soft); vertical-align:middle}
 tr:last-child td{border-bottom:none}
-.row-thumb{width:52px;height:38px;border-radius:6px;object-fit:cover; background:var(--bg-2)}
+.row-thumb{width:52px;height:38px;border-radius:6px;object-fit:cover; background:var(--bg-2); flex-shrink:0}
+/* عمود السيارة (صورة + اسم) ثابت أثناء التمرير الأفقي، عشان ميختفيش ويبان "مقطوع" */
+.col-sticky{
+  position:sticky; inset-inline-start:0; z-index:1;
+  background:var(--surface); display:flex; align-items:center; gap:10px;
+  min-width:170px; max-width:170px; white-space:normal;
+  box-shadow:4px 0 8px -4px #0006;
+}
+thead .col-sticky{background:var(--surface); box-shadow:none}
 .row-actions{display:flex; gap:6px}
 .icon-btn{width:32px;height:32px; border-radius:8px; background:var(--bg-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:14px}
 .icon-btn:hover{border-color:var(--accent-2)}
@@ -660,6 +668,9 @@ tr:last-child td{border-bottom:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-screen{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:9999; flex-direction:column; gap:14px}
 .loading-screen .spinner{width:28px;height:28px; border-width:3px}
+/* رجوع سريع لنفس الجلسة: نتخطى أنيميشن التجميع الطويلة ونظهر خفيف وسريع */
+.loading-screen.fast .car-loader{display:none}
+.loading-screen.fast span{display:none}
 
 /* ---------- لودر "سيارة بتتجمع" ---------- */
 .car-loader{width:200px; height:auto; overflow:visible}
@@ -783,7 +794,7 @@ tr:last-child td{border-bottom:none}
     </div>
   </section>
 
-  <div class="filters-bar" id="cars">
+  <div class="filters-bar fade-up" id="cars">
     <div class="filters-row">
       <select id="fBrand"><option value="">كل الماركات</option></select>
       <select id="fYear"><option value="">كل السنوات</option></select>
@@ -982,7 +993,7 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th></th><th>السيارة</th><th>السنة</th><th>السعر</th><th>الحالة</th><th>مميزة</th><th></th></tr></thead>
+          <thead><tr><th class="col-sticky"></th><th>السنة</th><th>السعر</th><th>الحالة</th><th>مميزة</th><th></th></tr></thead>
           <tbody id="carsTable"></tbody>
         </table>
       </div>
@@ -1030,6 +1041,10 @@ tr:last-child td{border-bottom:none}
           <div class="field full toggle-row">
             <span>خلفية متحركة في أعلى الصفحة</span>
             <div class="switch on" id="heroAnimSwitch"><i></i></div>
+          </div>
+          <div class="field full toggle-row">
+            <span>صوت محرك خفيف أثناء السكرول 🏎️</span>
+            <div class="switch on" id="engineSoundSwitch"><i></i></div>
           </div>
         </div>
       </div>
@@ -1612,6 +1627,7 @@ const DEFAULT_BRANDS = {
 const DEFAULT_COLORS = ["أبيض","أسود","فضي","رمادي","أزرق","أزرق غامق","أحمر","بني","بيج","ذهبي","أخضر","برتقالي","أصفر","بنفسجي","نبيتي"];
 let brandsData = {};
 let colorsData = [];
+let engineSoundEnabled = true;
 let currentModalCar = null, currentGalleryIdx = 0;
 let editingCarId = null, pendingDeleteId = null;
 let uploadedImageUrls = [];
@@ -1712,6 +1728,9 @@ function applySettingsToUI(){
   $("setPrimaryColor").value = primary;
   $("setSecondaryColor").value = secondary;
   $("heroAnimSwitch").classList.toggle("on", animEnabled);
+  const engineOn = settings.engineSound !== false;
+  $("engineSoundSwitch").classList.toggle("on", engineOn);
+  engineSoundEnabled = engineOn;
   $("setFooterDesc").value = settings.footerDesc || "";
   $("setWhatsapp").value = settings.whatsapp || "";
   $("setPhone").value = settings.phone || "";
@@ -1764,6 +1783,11 @@ function applySettingsToUI(){
    Load cars (realtime)
    ========================================================================== */
 function listenCars(){
+  // لو الجهاز رجّع فتح نفس الجلسة (بعد التنقل لتطبيق تاني مثلاً)، نتخطى أنيميشن
+  // تجميع السيارة الطويلة ونورّي المحتوى على طول، عشان الرجوع يحس أخف وأسرع
+  let returning = false;
+  try{ returning = sessionStorage.getItem("kasr100_visited") === "1"; }catch(e){}
+  if(returning) $("loading").classList.add("fast");
   const slowTimer = setTimeout(()=>{ const n=$("loadingSlowNote"); if(n) n.style.display="block"; }, 4000);
   onSnapshot(collection(db,"cars"), (snap)=>{
     clearTimeout(slowTimer);
@@ -1773,6 +1797,7 @@ function listenCars(){
     renderAdminOverview();
     renderAdminCarsTable();
     $("loading").style.display = "none";
+    try{ sessionStorage.setItem("kasr100_visited", "1"); }catch(e){}
     openCarFromHashOnce();
   }, (err)=>{
     clearTimeout(slowTimer);
@@ -2289,8 +2314,7 @@ function renderAdminCarsTable(){
   const sorted = [...allCars].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("carsTable").innerHTML = sorted.map(c=>`
     <tr>
-      <td><img class="row-thumb" src="${esc(safeUrl(c.images&&c.images[0]))}" alt=""></td>
-      <td>${esc(c.brand)} ${esc(c.model)}</td>
+      <td class="col-sticky"><img class="row-thumb" src="${esc(safeUrl(c.images&&c.images[0]))}" alt=""><span>${esc(c.brand)} ${esc(c.model)}</span></td>
       <td class="num">${esc(c.year)}</td>
       <td class="num">${fmtPrice(c.price)}</td>
       <td><span class="badge status-${esc(c.status||'متاح')}">${esc(c.status||'متاح')}</span></td>
@@ -2301,7 +2325,7 @@ function renderAdminCarsTable(){
           <button class="icon-btn" data-del="${esc(c.id)}">🗑️</button>
         </div>
       </td>
-    </tr>`).join("") || `<tr><td colspan="7" style="color:var(--text-mute);text-align:center;padding:30px">لم تُضِف أي سيارة بعد — اضغط "إضافة سيارة" للبدء</td></tr>`;
+    </tr>`).join("") || `<tr><td colspan="6" style="color:var(--text-mute);text-align:center;padding:30px">لم تُضِف أي سيارة بعد — اضغط "إضافة سيارة" للبدء</td></tr>`;
 
   $("carsTable").querySelectorAll("[data-edit]").forEach(b=> b.addEventListener("click", ()=> openCarForm(b.dataset.edit)));
   $("carsTable").querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=>{
@@ -2598,6 +2622,10 @@ $("logoInput").addEventListener("change", async (e)=>{
   }finally{ e.target.value = ""; }
 });
 $("heroAnimSwitch").addEventListener("click", ()=> $("heroAnimSwitch").classList.toggle("on"));
+$("engineSoundSwitch").addEventListener("click", ()=>{
+  $("engineSoundSwitch").classList.toggle("on");
+  engineSoundEnabled = $("engineSoundSwitch").classList.contains("on");
+});
 
 let pendingOgImageUrl = null;
 $("uploadOgImageBtn").addEventListener("click", ()=> $("ogImageInput").click());
@@ -2677,6 +2705,7 @@ $("saveSettingsBtn").addEventListener("click", async ()=>{
     primaryColor: $("setPrimaryColor").value,
     secondaryColor: $("setSecondaryColor").value,
     heroAnimated: $("heroAnimSwitch").classList.contains("on"),
+    engineSound: $("engineSoundSwitch").classList.contains("on"),
     footerDesc: $("setFooterDesc").value.trim(),
     whatsapp: $("setWhatsapp").value.trim(),
     phone: $("setPhone").value.trim(),
@@ -2749,6 +2778,69 @@ showView("public");
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{ navigator.serviceWorker.register("/sw.js").catch(()=>{}); });
 }
+
+/* ---------- صوت محرك خفيف أثناء السكرول (مُولَّد بالكود، بدون أي ملف صوتي) ---------- */
+(function(){
+  let actx = null;
+  let unlocked = false;
+  let lastBlip = 0;
+
+  function unlock(){
+    if(unlocked) return;
+    unlocked = true;
+    try{
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state === "suspended") actx.resume();
+    }catch(e){ actx = null; }
+  }
+  // الصوت ممنوع يشتغل قبل أول لمسة/ضغطة من الزائر (سياسة كل المتصفحات) —
+  // أول لمسة في أي مكان بالصفحة كافية، مش شرط تكون في عنصر صوت بعينه
+  ["pointerdown","touchstart","click"].forEach(ev=> document.addEventListener(ev, unlock, {once:true, passive:true}));
+
+  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function revBlip(strength){
+    if(!actx || !engineSoundEnabled || reducedMotion) return;
+    const now = actx.currentTime;
+    const osc = actx.createOscillator();
+    const osc2 = actx.createOscillator();
+    const gain = actx.createGain();
+    const filter = actx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 1100;
+    osc.type = "sawtooth"; osc2.type = "square";
+    const peak = 80 + strength * 55; // نغمة المحرك بترتفع مع سرعة السكرول
+    osc.frequency.setValueAtTime(peak * 0.6, now);
+    osc.frequency.exponentialRampToValueAtTime(peak, now + 0.09);
+    osc.frequency.exponentialRampToValueAtTime(peak * 0.55, now + 0.26);
+    osc2.frequency.setValueAtTime(peak * 1.21, now);
+    osc2.frequency.exponentialRampToValueAtTime(peak * 0.7, now + 0.26);
+    const vol = Math.min(0.05, 0.018 + strength * 0.028); // صوت واطي جدًا دايمًا
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(vol, now + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+    osc.connect(filter); osc2.connect(filter); filter.connect(gain); gain.connect(actx.destination);
+    osc.start(now); osc2.start(now);
+    osc.stop(now + 0.3); osc2.stop(now + 0.3);
+  }
+
+  let lastY = window.scrollY, lastT = performance.now(), ticking = false;
+  function onScrollFrame(){
+    ticking = false;
+    const y = window.scrollY, t = performance.now();
+    const dt = Math.max(16, t - lastT);
+    const speed = Math.abs(y - lastY) / dt; // px لكل ميلي ثانية
+    lastY = y; lastT = t;
+    if(speed > 0.35 && (t - lastBlip) > 260){
+      lastBlip = t;
+      revBlip(Math.min(1, speed / 2.2));
+    }
+  }
+  window.addEventListener("scroll", ()=>{
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(onScrollFrame);
+  }, {passive:true});
+})();
 
 /* ---------- نافذة دعوة تثبيت التطبيق على الشاشة الرئيسية ---------- */
 (function(){
