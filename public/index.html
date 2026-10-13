@@ -1813,13 +1813,16 @@ function listenCars(){
 let openedFromHash = false;
 function openCarFromHashOnce(){
   if(openedFromHash) return;
-  const hash = location.hash;
-  if(hash && hash.startsWith("#car-")){
-    const carId = hash.slice(5);
+  // الرابط الحديث: /car/{id} (عشان جوجل وواتساب يقدروا يفهرسوا كل سيارة لوحدها) —
+  // ولسه بندعم الرابط القديم #car-{id} لو حد عنده رابط قديم متبعوت زمان
+  const pathMatch = location.pathname.match(/^\/car\/([a-zA-Z0-9_-]+)\/?$/);
+  const carId = pathMatch ? pathMatch[1] : (location.hash.startsWith("#car-") ? location.hash.slice(5) : null);
+  if(carId){
     if(allCars.some(c=>c.id===carId)){
       openedFromHash = true;
       showView("public");
-      openCarModal(carId);
+      openCarModal(carId, {skipPush:true});
+      if(location.pathname !== "/car/"+carId) history.replaceState(null, "", "/car/"+carId);
     }
   }
 }
@@ -1938,13 +1941,17 @@ $("heroSearchInput").addEventListener("keydown", e=>{ if(e.key==="Enter"){ rende
 /* ==========================================================================
    Car detail modal
    ========================================================================== */
-function openCarModal(id){
+function openCarModal(id, opts){
   const c = allCars.find(x=>x.id===id);
   if(!c) return;
   currentModalCar = c; currentGalleryIdx = 0;
   stopAutoplay();
+  if(!(opts && opts.skipPush) && location.pathname !== "/car/"+id){
+    history.pushState({carId:id}, "", "/car/"+id);
+  }
   renderCarVideo(c);
   $("modalTitle").textContent = `${c.brand||''} ${c.model||''}`;
+  document.title = `${c.brand||''} ${c.model||''} ${c.year||''} — ${fmtPrice(c.price)}`.replace(/\s+/g,' ').trim();
   $("modalMeta").textContent = `${c.year||''} · ${c.color||''} · ${c.condition||''}${c.trim ? ' · '+c.trim : ''}`;
   $("modalPrice").textContent = fmtPrice(c.price);
   $("modalSpecs").innerHTML = [
@@ -2149,15 +2156,29 @@ $("modalBooking").addEventListener("click", (e)=>{
     toast("لم يقم المعرض بإضافة رقم واتساب بعد — أضفه من لوحة التحكم ⟵ الإعدادات", "err");
   }
 });
-$("closeCarModal").addEventListener("click", ()=> withVT(()=>{
+function closeCarModalUI(){
   stopAutoplay();
   if(lightboxOpen) closeLightbox();
   $("modalVideo").innerHTML = ""; // نوقف تشغيل الفيديو (يوتيوب) لو كان شغّال
   $("carModalBackdrop").classList.remove("open"); document.body.style.overflow="";
+  document.title = (settings.dealerName || "المعرض") + " — سيارات للبيع";
+}
+$("closeCarModal").addEventListener("click", ()=> withVT(()=>{
+  closeCarModalUI();
+  if(location.pathname.startsWith("/car/")) history.pushState(null, "", "/");
 }));
 $("carModalBackdrop").addEventListener("click", e=>{ if(e.target===$("carModalBackdrop")) $("closeCarModal").click(); });
+// زرار رجوع المتصفح: لو كان فاتح سيارة تانية في التاريخ يفتحها، أو يقفل المودال لو رجع للصفحة الرئيسية
+window.addEventListener("popstate", ()=>{
+  const m = location.pathname.match(/^\/car\/([a-zA-Z0-9_-]+)\/?$/);
+  if(m && allCars.some(c=>c.id===m[1])){
+    openCarModal(m[1], {skipPush:true});
+  } else if($("carModalBackdrop").classList.contains("open")){
+    closeCarModalUI();
+  }
+});
 $("modalShare").addEventListener("click", async ()=>{
-  const url = location.href.split("#")[0] + "#car-" + currentModalCar.id;
+  const url = location.origin + "/car/" + currentModalCar.id;
   if(navigator.share){ try{ await navigator.share({title:$("modalTitle").textContent, url}); }catch(e){} }
   else { await navigator.clipboard.writeText(url); toast("تم نسخ الرابط", "ok"); }
 });
