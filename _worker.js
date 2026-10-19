@@ -67,6 +67,7 @@ function fsValue(v) {
   if ("integerValue" in v) return Number(v.integerValue);
   if ("doubleValue" in v) return v.doubleValue;
   if ("booleanValue" in v) return v.booleanValue;
+  if ("timestampValue" in v) return v.timestampValue;
   if ("arrayValue" in v) return (v.arrayValue.values || []).map(fsValue);
   return null;
 }
@@ -74,6 +75,46 @@ function fsDoc(doc) {
   const out = {};
   for (const k in doc.fields || {}) out[k] = fsValue(doc.fields[k]);
   return out;
+}
+async function listCars(projectId) {
+  const base = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/cars`;
+  const cars = [];
+  let pageToken = "";
+  do {
+    const url = base + (pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "");
+    const res = await fetch(url);
+    if (!res.ok) break;
+    const data = await res.json();
+    for (const doc of data.documents || []) {
+      cars.push({ id: doc.name.split("/").pop(), ...fsDoc(doc) });
+    }
+    pageToken = data.nextPageToken || "";
+  } while (pageToken);
+  return cars;
+}
+function xmlEscape(s) {
+  return String(s == null ? "" : s).replace(/[&<>'"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&apos;", '"': "&quot;" }[ch]));
+}
+
+/* ---------- خريطة الموقع (sitemap.xml) — بتتولّد لحظيًا من السيارات الموجودة فعلًا في
+   قاعدة البيانات، فأي سيارة جديدة تضيفها أو تحذفها تتحدّث في الخريطة تلقائيًا
+   من غير ما تلمس أي ملف بنفسك. */
+async function handleSitemap(request, env) {
+  const origin = new URL(request.url).origin;
+  const today = new Date().toISOString().slice(0, 10);
+  const cars = env.FIREBASE_PROJECT_ID ? await listCars(env.FIREBASE_PROJECT_ID).catch(() => []) : [];
+
+  const urls = [
+    `  <url><loc>${origin}/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`,
+    ...cars.map((c) => {
+      const lastmod = c.createdAt ? String(c.createdAt).slice(0, 10) : today;
+      return `  <url><loc>${xmlEscape(origin + "/car/" + c.id)}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`;
+    }),
+  ];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
+  return new Response(xml, {
+    headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=600" },
+  });
 }
 async function getCar(id, projectId) {
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/cars/${encodeURIComponent(id)}`;
@@ -172,6 +213,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/upload") return handleUpload(request, env);
+    if (url.pathname === "/sitemap.xml") return handleSitemap(request, env);
     const carMatch = url.pathname.match(/^\/car\/([a-zA-Z0-9_-]+)\/?$/);
     if (carMatch) return handleCarPage(request, env, carMatch[1]);
     return env.ASSETS.fetch(request);
