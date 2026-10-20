@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lam7cars.mahmoudabdelaalaboalsaoud.workers.dev/sitemap.xml
